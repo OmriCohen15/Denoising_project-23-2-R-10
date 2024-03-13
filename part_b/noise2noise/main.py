@@ -3,17 +3,6 @@ from imports import *
 
 def main():
 
-    # First checking if GPU is available
-    train_on_gpu = torch.cuda.is_available()
-
-    if (train_on_gpu):
-        print('Training on GPU.')
-    else:
-        print('No GPU available, training on CPU.')
-
-    # DEVICE = torch.device('cuda' if train_on_gpu else 'cpu')
-    DEVICE = torch.device('cpu')
-
     np.random.seed(999)
     torch.manual_seed(999)
 
@@ -36,11 +25,22 @@ def main():
 
     # mode = input("Enter mode (train or inference): ")
 
+    # mode = "train"
     mode = "inference"
 
     if mode == "train":
         # Code for training mode
         print("Training mode selected")
+
+        # First checking if GPU is available
+        train_on_gpu = torch.cuda.is_available()
+
+        if (train_on_gpu):
+            print('Training on GPU.')
+        else:
+            print('No GPU available, training on CPU.')
+
+        DEVICE = torch.device('cuda' if train_on_gpu else 'cpu')
 
         training_type = "Noise2Noise"
         noise_class = "white"
@@ -77,7 +77,7 @@ def main():
         # optimizer.load_state_dict(opt_checkpoint)
 
         train_losses, test_losses = train(
-            dcunet20, data_object, train_loader, test_loader, loss_fn, optimizer, scheduler, 4)
+            dcunet20, data_object, train_loader, test_loader, loss_fn, optimizer, scheduler, 3)
 
         print("train_losses = " + str(train_losses))
         print("test_losses = " + str(test_losses))
@@ -86,6 +86,9 @@ def main():
     elif mode == "inference":
         # Code for inference mode
         print("Inference mode selected")
+
+        DEVICE = torch.device('cpu')
+        print('Training on CPU.')
 
         # Load the pre-trained model weights
         # model_weights_path = "Pretrained_Weights/Noise2Noise/white.pth"

@@ -1,0 +1,50 @@
+Training mode selected
+Training on GPU.
+Noise Class: Noise2Noise
+Training Type: white
+No. of Training files: 22434
+No. of Testing files: 8
+  0%|                                                                                                                                                                                                                                          | 0/3 [00:00<?, ?it/s]/home/ubuntulab/miniconda3/lib/python3.12/site-packages/torch/functional.py:660: UserWarning: A window was not provided. A rectangular window will be applied,which is known to cause spectral leakage. Other windows such as torch.hann_window or torch.hamming_window can are recommended to reduce spectral leakage.To suppress this warning and use a rectangular window, explicitly set `window=torch.ones(n_fft, device=<device>)`. (Triggered internally at ../aten/src/ATen/native/SpectralOps.cpp:837.)
+  return _VF.stft(input, n_fft, hop_length, win_length, window,  # type: ignore[attr-defined]
+/home/ubuntulab/projects/capston_project/Denoising_project-23-2-R-10/part_b/noise2noise/model.py:258: UserWarning: A window was not provided. A rectangular window will be applied.Please provide the same window used by stft to make the inversion lossless.To suppress this warning and use a rectangular window, explicitly set `window=torch.ones(n_fft, device=<device>)`. (Triggered internally at ../aten/src/ATen/native/SpectralOps.cpp:1024.)
+  output = torch.istft(output, n_fft=self.n_fft,
+Saving model....
+
+Sample metrics computed
+Averages computed
+Metrics on test data (cleaned by model)
+PESQ-WB : 1.658+/-0.455
+PESQ-NB : 2.298+/-0.614
+SNR : 13.278+/-5.348
+SSNR : 4.789+/-6.221
+STOI : 0.784+/-0.185
+OPed to txt
+Models saved
+ 33%|█████████████████████████████████████████████████████████████████████████▎                                                                                                                                                  | 1/3 [1:08:55<2:17:50, 4135.15s/itSaving model....
+
+Sample metrics computed
+Averages computed
+Metrics on test data (cleaned by model)
+PESQ-WB : 1.682+/-0.500
+PESQ-NB : 2.318+/-0.666
+SNR : 13.165+/-5.579
+SSNR : 4.795+/-6.395
+STOI : 0.786+/-0.186
+OPed to txt
+Models saved
+ 67%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▋                                                                         | 2/3 [2:17:27<1:08:42, 4122.03s/itSaving model....
+
+Sample metrics computed
+Averages computed
+Metrics on test data (cleaned by model)
+PESQ-WB : 1.721+/-0.496
+PESQ-NB : 2.361+/-0.656
+SNR : 13.617+/-5.245
+SSNR : 5.235+/-6.349
+STOI : 0.788+/-0.184
+OPed to txt
+Models saved
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 3/3 [3:25:48<00:00, 4116.27s/it]
+train_losses = -0.7864160002037793
+test_losses = 0.0
+Training complete

@@ -1,4 +1,6 @@
 from imports import *
+from tqdm import tqdm, tqdm_notebook
+import torch
 
 DEVICE = torch.device('cuda')
 
