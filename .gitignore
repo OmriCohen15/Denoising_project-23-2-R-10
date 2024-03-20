@@ -4,4 +4,5 @@ part_b/noise2noise/__pycache__
 part_b/noise2noise/*.wav
 part_b/noise2noise/.vscode
 part_b/noise2noise/Datasets
-part_b/split_audio/results
+part_b/split_audio_script/results
+part_b/split_audio_script/*.wav

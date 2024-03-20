@@ -102,7 +102,7 @@ def main():
                                 )
 
         # Load test files
-        sample_index_to_be_test = 4
+        sample_index_to_be_test = 0
 
         test_noisy_files = sorted(
             list(Path("Samples/Sample_Test_Input").rglob('*.wav')))
