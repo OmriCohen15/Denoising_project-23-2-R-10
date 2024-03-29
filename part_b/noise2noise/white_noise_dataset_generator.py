@@ -6,13 +6,13 @@ import os
 from tqdm import tqdm
 
 
-TRAINING_INPUT_PATH = 'Datasets/WhiteNoise_Train_Input'
-TRAINING_OUTPUT_PATH = 'Datasets/WhiteNoise_Train_Output'
-TESTING_INPUT_PATH = 'Datasets/WhiteNoise_Test_Input'
+TRAINING_INPUT_PATH = 'Datasets/trainset_input'
+TRAINING_OUTPUT_PATH = 'Datasets/trainset_target'
+TESTING_INPUT_PATH = 'Datasets/testset_input'
 
 
-CLEAN_TRAINING_DIR = Path('Datasets/clean_trainset_28spk_wav')
-CLEAN_TESTING_DIR = Path("Datasets/clean_testset_wav")
+CLEAN_TRAINING_DIR = Path('Datasets/trainset_clean')
+CLEAN_TESTING_DIR = Path("Datasets/testset_clean")
 clean_training_dir_wav_files = sorted(list(CLEAN_TRAINING_DIR.rglob('*.wav')))
 clean_testing_dir_wav_files = sorted(list(CLEAN_TESTING_DIR.rglob('*.wav')))
 print("Total training samples:", len(clean_training_dir_wav_files))

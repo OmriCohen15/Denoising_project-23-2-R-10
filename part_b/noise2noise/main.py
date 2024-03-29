@@ -43,7 +43,7 @@ def main():
         DEVICE = torch.device('cuda' if train_on_gpu else 'cpu')
 
         training_type = "Noise2Noise"
-        noise_class = "white"
+        noise_class = "walkie-talkie"
         data_object = PreTraining(training_type, noise_class)
         data_object.import_and_create_training_dir(noise_class, training_type)
         train_files, test_files = data_object.save_train_test_files()
@@ -77,7 +77,7 @@ def main():
         # optimizer.load_state_dict(opt_checkpoint)
 
         train_losses, test_losses = train(
-            dcunet20, data_object, train_loader, test_loader, loss_fn, optimizer, scheduler, 3)
+            dcunet20, data_object, train_loader, test_loader, loss_fn, optimizer, scheduler, 4)
 
         print("train_losses = " + str(train_losses))
         print("test_losses = " + str(test_losses))
@@ -91,8 +91,9 @@ def main():
         print('Training on CPU.')
 
         # Load the pre-trained model weights
-        # model_weights_path = "Pretrained_Weights/Noise2Noise/white.pth"
-        model_weights_path = "white_Noise2Noise/Weights/dc20_model_3.pth"
+        # model_weights_path = "Pretrained_Weights/Noise2Noise/original_model_weights/white.pth"
+        # model_weights_path = "white_Noise2Noise/Weights/6hrs_podcasts_traning_dc20_model_3.pth"
+        model_weights_path = "walkie-talkie_Noise2Noise/Weights/dc20_model_4.pth"
 
         #
         dcunet20 = DCUnet20(N_FFT, HOP_LENGTH).to(DEVICE)
@@ -106,8 +107,10 @@ def main():
 
         test_noisy_files = sorted(
             list(Path("Samples/Sample_Test_Input").rglob('*.wav')))
+        # list(Path("walkie-talkie_Noise2Noise/Samples/Sample_Test_Input").rglob('*.wav')))
         test_clean_files = sorted(
             list(Path("Samples/Sample_Test_Target").rglob('*.wav')))
+        # list(Path("walkie-talkie_Noise2Noise/Samples/Sample_Test_Target").rglob('*.wav')))
         test_dataset = SpeechDataset(
             test_noisy_files, test_clean_files, N_FFT, HOP_LENGTH)
 

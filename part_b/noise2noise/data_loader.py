@@ -89,37 +89,35 @@ class PreTraining:
         self.create_training_dir(noise_class, training_type)
 
     def import_data(self, noise_class, training_type):
-        if noise_class == "white":
-            self.TRAIN_INPUT_DIR = Path('Datasets/WhiteNoise_Train_Input')
+        if noise_class != "":
+            self.TRAIN_INPUT_DIR = Path('Datasets/trainset_input')
 
             if training_type == "Noise2Noise":
                 self.TRAIN_TARGET_DIR = Path(
-                    'Datasets/WhiteNoise_Train_Output')
+                    'Datasets/trainset_target')
             elif training_type == "Noise2Clean":
                 self.TRAIN_TARGET_DIR = Path(
-                    'Datasets/clean_trainset_28spk_wav')
+                    'Datasets/trainset_clean')
             else:
                 raise Exception("Enter valid training type")
 
-            self.TEST_NOISY_DIR = Path('Datasets/WhiteNoise_Test_Input')
-            self.TEST_CLEAN_DIR = Path('Datasets/clean_testset_wav')
+            self.TEST_NOISY_DIR = Path('Datasets/testset_input')
+            self.TEST_CLEAN_DIR = Path('Datasets/testset_clean')
 
         else:
-            self.TRAIN_INPUT_DIR = Path('Datasets/US_Class' +
-                                        str(noise_class)+'_Train_Input')
+            self.TRAIN_INPUT_DIR = Path('Datasets/trainset_input')
 
             if training_type == "Noise2Noise":
                 self.TRAIN_TARGET_DIR = Path(
-                    'Datasets/US_Class'+str(noise_class)+'_Train_Output')
+                    'Datasets/trainset_target')
             elif training_type == "Noise2Clean":
                 self.TRAIN_TARGET_DIR = Path(
-                    'Datasets/clean_trainset_28spk_wav')
+                    'Datasets/trainset_clean')
             else:
                 raise Exception("Enter valid training type")
 
-            self.TEST_NOISY_DIR = Path('Datasets/US_Class' +
-                                       str(noise_class)+'_Test_Input')
-            self.TEST_CLEAN_DIR = Path('Datasets/clean_testset_wav')
+            self.TEST_NOISY_DIR = Path('Datasets/testset_input')
+            self.TEST_CLEAN_DIR = Path('Datasets/testset_clean')
 
     def create_training_dir(self, noise_class, training_type):
         self.basepath = str(noise_class) + "_" + training_type

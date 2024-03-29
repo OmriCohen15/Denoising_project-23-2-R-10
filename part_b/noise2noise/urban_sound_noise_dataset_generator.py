@@ -198,15 +198,15 @@ def makeCorruptedFile_differenttype(filename, dest, noise_type, snr):
 
 
 Urban8Kdir = "Datasets/UrbanSound8K/audio/"
-target_folder = "Datasets/clean_trainset_28spk_wav"
+target_folder = "Datasets/trainset_clean"
 
 for key in noise_class_dictionary:
     print("\t{} : {}".format(key, noise_class_dictionary[key]))
 
-noise_type = int(input("Enter the noise class dataset to generate :\t"))
+# noise_type = int(input("Enter the noise class dataset to generate :\t"))
 
-inp_folder = "Datasets/US_Class"+str(noise_type)+"_Train_Input"
-op_folder = "Datasets/US_Class"+str(noise_type)+"_Train_Output"
+inp_folder = "Datasets/trainset_input"
+op_folder = "Datasets/trainset_target"
 
 print("Generating Training Data..")
 print("Making train input folder")
@@ -223,7 +223,7 @@ for file in tqdm(os.listdir(target_folder)):
     filename = os.fsdecode(file)
     if filename.endswith(".wav"):
         snr = random.randint(0, 10)
-        # noise_type=random.randint(0,9)
+        noise_type = random.randint(0, 9)
         makeCorruptedFile_singletype(filename, inp_folder, noise_type, snr)
         snr = random.randint(0, 10)
         makeCorruptedFile_differenttype(filename, op_folder, noise_type, snr)
@@ -231,8 +231,8 @@ for file in tqdm(os.listdir(target_folder)):
 
 
 Urban8Kdir = "Datasets/UrbanSound8K/audio/"
-target_folder = "Datasets/clean_testset_wav"
-inp_folder = "Datasets/US_Class"+str(noise_type)+"_Test_Input"
+target_folder = "Datasets/testset_clean"
+inp_folder = "Datasets/testset_input"
 
 print("Generating Testing Data..")
 print("Making test input folder")
@@ -245,5 +245,6 @@ for file in tqdm(os.listdir(target_folder)):
     filename = os.fsdecode(file)
     if filename.endswith(".wav"):
         snr = random.randint(0, 10)
+        noise_type = random.randint(0, 9)
         makeCorruptedFile_singletype(filename, inp_folder, noise_type, snr)
         counter += 1
