@@ -137,10 +137,10 @@ def main():
 
         test_noisy_files = sorted(
             list(Path("Samples/Sample_Test_Input").rglob('*.wav')))
-        # list(Path("walkie-talkie_Noise2Noise/Samples/Sample_Test_Input").rglob('*.wav')))
+
         test_clean_files = sorted(
             list(Path("Samples/Sample_Test_Target").rglob('*.wav')))
-        # list(Path("walkie-talkie_Noise2Noise/Samples/Sample_Test_Target").rglob('*.wav')))
+
         test_dataset = SpeechDataset(
             test_noisy_files, test_clean_files, N_FFT, HOP_LENGTH)
 
@@ -207,10 +207,6 @@ def main():
                 results_path + "/denoised.wav"), sample_rate=SAMPLE_RATE, bit_precision=16)
             save_audio_file(np_array=x_clean_np, file_path=Path(
                 results_path + "/clean.wav"), sample_rate=original_sample_rate, bit_precision=16)
-
-        # x_noisy, x_clean = next(test_loader_single_unshuffled_iter)
-        # for _ in range(sample_index_to_be_test):
-        #     x_noisy, x_clean = next(test_loader_single_unshuffled_iter)
 
 
 if __name__ == "__main__":
