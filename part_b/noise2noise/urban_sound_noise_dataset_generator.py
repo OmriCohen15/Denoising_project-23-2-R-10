@@ -30,16 +30,41 @@ noise_class_dictionary = {
 
 
 def resample(original, old_rate, new_rate):
+    """
+    Resample the audio signal to a new rate using linear interpolation.
+
+    This function changes the sample rate of an audio signal from an old rate to a new rate. 
+    It uses linear interpolation to estimate the values at the new sample rate.
+
+    Parameters:
+    - original (numpy.ndarray): The original audio signal array.
+    - old_rate (int): The original sample rate of the audio signal.
+    - new_rate (int): The desired sample rate to convert the audio signal to.
+
+    Returns:
+    - numpy.ndarray: The resampled audio signal array at the new sample rate.
+
+    If the old and new rates are the same, the original audio signal is returned unchanged.
+    """
     if old_rate != new_rate:
+        # Calculate the duration of the audio in seconds
         duration = original.shape[0] / old_rate
+
+        # Time points for the original signal
         time_old = np.linspace(0, duration, original.shape[0])
+
+        # Time points for the new signal
         time_new = np.linspace(0, duration, int(
             original.shape[0] * new_rate / old_rate))
+
+        # Create a linear interpolator
         interpolator = interpolate.interp1d(time_old, original.T)
+
+        # Use the interpolator to find new values
         new_audio = interpolator(time_new).T
         return new_audio
     else:
-        return original
+        return original  # Return the original signal if rates are the same
 
 
 fold_names = []
@@ -48,6 +73,23 @@ for i in range(1, 11):
 
 
 def diffNoiseType(files, noise_type):
+    """
+    Filter a list of filenames to include only those not matching a specific noise type.
+
+    This function examines a list of filenames, expected to be in a format where the
+    second element (when split by '-') indicates the noise type. It returns a list of
+    filenames that do not match the specified noise type.
+
+    Parameters:
+    - files (list of str): The list of filenames to be filtered.
+    - noise_type (int): The noise type to be excluded from the result list. The noise type
+      is expected to be an integer value, which is compared against the second element of
+      the filename when split by '-'.
+
+    Returns:
+    - list of str: A list containing only the filenames that do not match the specified
+      noise type.
+    """
     result = []
     for i in files:
         if i.endswith(".wav"):
@@ -58,6 +100,23 @@ def diffNoiseType(files, noise_type):
 
 
 def oneNoiseType(files, noise_type):
+    """
+    Filter a list of filenames to include only those matching a specific noise type.
+
+    This function examines a list of filenames, expected to be in a format where the
+    second element (when split by '-') indicates the noise type. It returns a list of
+    filenames that match the specified noise type.
+
+    Parameters:
+    - files (list of str): The list of filenames to be filtered.
+    - noise_type (int): The noise type to be included in the result list. The noise type
+      is expected to be an integer value, which is compared against the second element of
+      the filename when split by '-'.
+
+    Returns:
+    - list of str: A list containing only the filenames that match the specified
+      noise type.
+    """
     result = []
     for i in files:
         if i.endswith(".wav"):
@@ -68,6 +127,23 @@ def oneNoiseType(files, noise_type):
 
 
 def genNoise(filename, num_per_fold, dest):
+    """
+    Generate noise-augmented audio files by overlaying original audio with random noise samples.
+
+    This function takes an audio file, selects a specified number of random noise samples from
+    each fold of the UrbanSound8K dataset, overlays the noise onto the original audio, and saves
+    the resulting audio files to a specified destination directory. Each resulting file is named
+    by appending '_noise_' followed by a counter value to the original filename.
+
+    Parameters:
+    - filename (str): The name of the original audio file to be augmented with noise.
+    - num_per_fold (int): The number of noise samples to overlay from each fold.
+    - dest (str): The destination directory where the augmented audio files will be saved.
+
+    Returns:
+    - None: This function does not return a value but saves the augmented audio files directly
+      to the filesystem.
+    """
     true_path = target_folder+"/"+filename
     audio_1 = AudioSegment.from_file(true_path)
     counter = 0
@@ -90,6 +166,25 @@ def genNoise(filename, num_per_fold, dest):
 
 
 def makeCorruptedFile_singletype(filename, dest, noise_type, snr):
+    """
+    Generate a noise-augmented audio file with a specific type of noise and signal-to-noise ratio (SNR).
+
+    This function overlays a selected noise sample of a specific type onto the original audio file
+    with a given SNR. The noise-augmented audio is then saved to the specified destination directory.
+    The process attempts to load and augment the audio file until successful, skipping files that
+    cause decoding errors.
+
+    Parameters:
+    - filename (str): The name of the original audio file to be augmented.
+    - dest (str): The destination directory where the augmented audio file will be saved.
+    - noise_type (int): The specific type of noise to overlay on the original audio. The noise type
+      corresponds to an index in a predefined dictionary of noise types.
+    - snr (int): The desired signal-to-noise ratio (in dB) for the augmented audio file.
+
+    Returns:
+    - None: This function does not return a value but saves the augmented audio file directly
+      to the filesystem.
+    """
     succ = False
     true_path = target_folder+"/"+filename
     while not succ:
@@ -102,14 +197,13 @@ def makeCorruptedFile_singletype(filename, dest, noise_type, snr):
         un_noised_file, _ = torchaudio.load(true_path)
         un_noised_file = un_noised_file.numpy()
         un_noised_file = np.reshape(un_noised_file, -1)
-        # Create an audio Power array
+        # Calculate the power of the original audio signal in watts and then in decibels
         un_noised_file_watts = un_noised_file ** 2
-        # Create an audio Decibal array
         un_noised_file_db = 10 * np.log10(un_noised_file_watts)
-        # Calculate signal power and convert to dB
+        # Calculate the average power of the original signal in dB
         un_noised_file_avg_watts = np.mean(un_noised_file_watts)
         un_noised_file_avg_db = 10 * np.log10(un_noised_file_avg_watts)
-        # Calculate noise power
+        # Determine the average dB level of the added noise based on the desired SNR
         added_noise_avg_db = un_noised_file_avg_db - snr
         try:
             fold = np.random.choice(fold_names, 1, replace=False)
@@ -130,6 +224,7 @@ def makeCorruptedFile_singletype(filename, dest, noise_type, snr):
             noise_src_file_avg_watts = np.mean(noise_src_file_watts)
             noise_src_file_avg_db = 10 * np.log10(noise_src_file_avg_watts)
 
+            # Adjust the noise file's volume to achieve the desired SNR with the original audio
             db_change = added_noise_avg_db - noise_src_file_avg_db
 
             audio_2 = AudioSegment.from_file(dirname+"/"+noisefile)
@@ -139,11 +234,28 @@ def makeCorruptedFile_singletype(filename, dest, noise_type, snr):
             combined.export(target_dest, format="wav")
             succ = True
         except:
-            pass
+            pass  # If an error occurs during processing, the loop continues to retry
             # print("Some kind of audio decoding error occurred for the noise file..retrying")
 
 
 def makeCorruptedFile_differenttype(filename, dest, noise_type, snr):
+    """
+    Generate a noise-augmented audio file with a different type of noise and specified SNR.
+
+    This function overlays a randomly selected noise sample of a different type (not matching the specified noise_type)
+    onto the original audio file with a given signal-to-noise ratio (SNR). The noise-augmented audio is then saved to
+    the specified destination directory. The process is attempted repeatedly until successful, skipping files that
+    cause decoding errors.
+
+    Parameters:
+    - filename (str): The name of the original audio file to be augmented.
+    - dest (str): The destination directory where the augmented audio file will be saved.
+    - noise_type (int): The type of noise to be excluded. The function will select a different noise type for augmentation.
+    - snr (int): The desired signal-to-noise ratio (in dB) for the augmented audio file.
+
+    Returns:
+    - None: This function does not return a value but saves the augmented audio file directly to the filesystem.
+    """
     succ = False
     true_path = target_folder+"/"+filename
     while not succ:
@@ -156,14 +268,13 @@ def makeCorruptedFile_differenttype(filename, dest, noise_type, snr):
         un_noised_file, _ = torchaudio.load(true_path)
         un_noised_file = un_noised_file.numpy()
         un_noised_file = np.reshape(un_noised_file, -1)
-        # Create an audio Power array
+        # Calculate the power of the original audio signal in watts and then in decibels
         un_noised_file_watts = un_noised_file ** 2
-        # Create an audio Decibal array
         un_noised_file_db = 10 * np.log10(un_noised_file_watts)
-        # Calculate signal power and convert to dB
+        # Calculate the average power of the original signal in dB
         un_noised_file_avg_watts = np.mean(un_noised_file_watts)
         un_noised_file_avg_db = 10 * np.log10(un_noised_file_avg_watts)
-        # Calculate noise power
+        # Determine the average dB level of the added noise based on the desired SNR
         added_noise_avg_db = un_noised_file_avg_db - snr
 
         try:
@@ -185,6 +296,7 @@ def makeCorruptedFile_differenttype(filename, dest, noise_type, snr):
             noise_src_file_avg_watts = np.mean(noise_src_file_watts)
             noise_src_file_avg_db = 10 * np.log10(noise_src_file_avg_watts)
 
+            # Adjust the noise file's volume to achieve the desired SNR with the original audio
             db_change = added_noise_avg_db - noise_src_file_avg_db
 
             audio_2 = AudioSegment.from_file(dirname+"/"+noisefile)
@@ -194,7 +306,7 @@ def makeCorruptedFile_differenttype(filename, dest, noise_type, snr):
             combined.export(target_dest, format="wav")
             succ = True
         except:
-            pass
+            pass  # If an error occurs during processing, the loop continues to retry
 
 
 Urban8Kdir = "Datasets/UrbanSound8K/audio/"

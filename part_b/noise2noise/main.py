@@ -2,7 +2,9 @@ from imports import *
 
 
 def main():
-
+    """
+    Set the random seed and turn on deterministic mode for PyTorch.
+    """
     np.random.seed(999)
     torch.manual_seed(999)
 
@@ -13,6 +15,14 @@ def main():
 ################################################################################
 ########################## Set the model assumptions ###########################
 ################################################################################
+    """
+    Set the model assumptions for the training and inference stages.
+
+    sample_rate (int): The sample rate of the input audio.
+    n_fft (int): The size of the FFT window. 
+    hop_length (int): The hop length of the STFT.
+
+    """
 
     # The sampling frequency and the selected values for the stft.
     SAMPLE_RATE = 48000  # (our project sample rate is 16000)
@@ -23,12 +33,25 @@ def main():
 ################## Choose the mode of training and inference ###################
 ################################################################################
 
-    # mode = input("Enter mode (train or inference): ")
-
     # mode = "train"
     mode = "inference"
 
     if mode == "train":
+        """
+        Train the model for a given number of epochs.
+
+        model (torch.nn.Module): The model to be trained.
+        data_object (PreTraining): An object containing the training and testing data.
+        train_loader (DataLoader): The data loader for the training data.
+        test_loader (DataLoader): The data loader for the testing data.
+        loss_fn (torch.nn.Module): The loss function to be used.
+        optimizer (torch.optim): The optimizer to be used.
+        scheduler (torch.optim.lr_scheduler): The learning rate scheduler to be used.
+        num_epochs (int): The number of epochs for training.
+
+        During the training process the training log is printed containing the training losses and the testing losses.
+
+        """
         # Code for training mode
         print("Training mode selected")
 
@@ -84,6 +107,17 @@ def main():
         print("Training complete")
 
     elif mode == "inference":
+        """
+        Perform inference on a given model and data object.
+
+        Args:
+            model (torch.nn.Module): The model to be used for inference.
+            data_object (PreTraining): An object containing the training and testing data.
+
+        Returns:
+            None
+
+        """
         # Code for inference mode
         print("Inference mode selected")
 
@@ -157,9 +191,6 @@ def main():
             "Samples/denoised.wav"), sample_rate=SAMPLE_RATE, bit_precision=16)
         save_audio_file(np_array=x_clean_np, file_path=Path(
             "Samples/clean.wav"), sample_rate=SAMPLE_RATE, bit_precision=16)
-
-    else:
-        print("Invalid mode entered. Please choose either 'train' or 'inference'.")
 
 
 if __name__ == "__main__":
