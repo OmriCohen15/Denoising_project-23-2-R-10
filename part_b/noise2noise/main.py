@@ -1,4 +1,5 @@
 from imports import *
+from scipy.io import wavfile
 
 
 def main():
@@ -125,9 +126,7 @@ def main():
         print('Training on CPU.')
 
         # Load the pre-trained model weights
-        # model_weights_path = "Pretrained_Weights/Noise2Noise/original_model_weights/white.pth"
-        # model_weights_path = "white_Noise2Noise/Weights/6hrs_podcasts_traning_dc20_model_3.pth"
-        model_weights_path = "walkie-talkie_Noise2Noise/Weights/dc20_model_4.pth"
+        model_weights_path = "training_results/urban_Noise2Noise/Weights/dc20_model_4.pth"
 
         #
         dcunet20 = DCUnet20(N_FFT, HOP_LENGTH).to(DEVICE)
@@ -135,9 +134,6 @@ def main():
         checkpoint = torch.load(model_weights_path,
                                 map_location=torch.device('cpu')
                                 )
-
-        # Load test files
-        sample_index_to_be_test = 0
 
         test_noisy_files = sorted(
             list(Path("Samples/Sample_Test_Input").rglob('*.wav')))
@@ -158,39 +154,63 @@ def main():
         test_loader_single_unshuffled_iter = iter(
             test_loader_single_unshuffled)
 
-        x_noisy, x_clean = next(test_loader_single_unshuffled_iter)
-        for _ in range(sample_index_to_be_test):
+        results_dir = 'Samples/Results'
+        if not os.path.exists(results_dir):
+            os.makedirs(results_dir)
+
+        # Loop through the files in the directory
+        for wav_file_full_path in test_noisy_files:
+            # filename = os.path.basename(wav_file_full_path)
+            filename = Path(wav_file_full_path).stem
+            results_path = results_dir + '/' + filename
+            if not os.path.exists(results_path):
+                os.mkdir(results_path)
+
+            original_sample_rate, data = wavfile.read(
+                "Samples/Sample_Test_Target/"+filename+".wav")
+
+            # Print the path to the file
+            print(wav_file_full_path)
             x_noisy, x_clean = next(test_loader_single_unshuffled_iter)
+            x_estimated = dcunet20(x_noisy, is_istft=True)
 
-        x_estimated = dcunet20(x_noisy, is_istft=True)
+            x_estimated_np = x_estimated[0].view(-1).detach().cpu().numpy()
+            x_clean_np = torch.view_as_complex(
+                torch.squeeze(x_clean[0], 1))
+            x_noisy_np = torch.view_as_complex(
+                torch.squeeze(x_noisy[0], 1))
 
-        x_estimated_np = x_estimated[0].view(-1).detach().cpu().numpy()
-        x_clean_np = torch.view_as_complex(torch.squeeze(x_clean[0], 1))
-        x_noisy_np = torch.view_as_complex(torch.squeeze(x_noisy[0], 1))
+            x_clean_np = torch.istft(x_clean_np, n_fft=N_FFT, hop_length=HOP_LENGTH,
+                                     normalized=True).view(-1).detach().cpu().numpy()
+            x_noisy_np = torch.istft(x_noisy_np, n_fft=N_FFT, hop_length=HOP_LENGTH,
+                                     normalized=True).view(-1).detach().cpu().numpy()
 
-        x_clean_np = torch.istft(x_clean_np, n_fft=N_FFT, hop_length=HOP_LENGTH,
-                                 normalized=True).view(-1).detach().cpu().numpy()
-        x_noisy_np = torch.istft(x_noisy_np, n_fft=N_FFT, hop_length=HOP_LENGTH,
-                                 normalized=True).view(-1).detach().cpu().numpy()
+            # Plot the results and save them
+            metrics = AudioMetrics(x_clean_np, x_estimated_np, SAMPLE_RATE)
+            print(metrics.display())    # Print the metrics
+            # Noisy audio waveform
+            plt.plot(x_noisy_np, label='Noisy')
+            # Clean audio waveform
+            plt.plot(x_clean_np, label='Clean')
+            # Estimated audio waveform
+            plt.plot(x_estimated_np, label='Estimated')
 
-        # Plot the results
-        metrics = AudioMetrics(x_clean_np, x_estimated_np, SAMPLE_RATE)
-        print(metrics.display())    # Print the metrics
-        plt.plot(x_noisy_np, label='Noisy')         # Noisy audio waveform
-        plt.plot(x_clean_np, label='Clean')         # Clean audio waveform
-        plt.plot(x_estimated_np, label='Estimated')  # Estimated audio waveform
+            plt.legend()
+            # plt.show()
+            plt.savefig(results_path+'/Waveform.png')
+            plt.clf()
 
-        plt.legend()
-        plt.show()
-        # plt.savefig('/path/to/save/images.png')
+            # Save the audio files
+            save_audio_file(np_array=x_noisy_np, file_path=Path(
+                results_path + "/noisy.wav"), sample_rate=SAMPLE_RATE, bit_precision=16)
+            save_audio_file(np_array=x_estimated_np, file_path=Path(
+                results_path + "/denoised.wav"), sample_rate=SAMPLE_RATE, bit_precision=16)
+            save_audio_file(np_array=x_clean_np, file_path=Path(
+                results_path + "/clean.wav"), sample_rate=original_sample_rate, bit_precision=16)
 
-        # Save the audio files
-        save_audio_file(np_array=x_noisy_np, file_path=Path(
-            "Samples/noisy.wav"), sample_rate=SAMPLE_RATE, bit_precision=16)
-        save_audio_file(np_array=x_estimated_np, file_path=Path(
-            "Samples/denoised.wav"), sample_rate=SAMPLE_RATE, bit_precision=16)
-        save_audio_file(np_array=x_clean_np, file_path=Path(
-            "Samples/clean.wav"), sample_rate=SAMPLE_RATE, bit_precision=16)
+        # x_noisy, x_clean = next(test_loader_single_unshuffled_iter)
+        # for _ in range(sample_index_to_be_test):
+        #     x_noisy, x_clean = next(test_loader_single_unshuffled_iter)
 
 
 if __name__ == "__main__":

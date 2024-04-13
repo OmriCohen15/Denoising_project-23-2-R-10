@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class CConv2d(nn.Module):
     """
     Class of complex valued convolutional layer. This layer implements convolution separately
@@ -41,12 +42,15 @@ class CConv2d(nn.Module):
         x_im = x[..., 1]    # Imaginary part of the input
 
         # Perform the complex convolution operation
-        c_real = self.real_conv(x_real) - self.im_conv(x_im)  # Compute real part of the output
-        c_im = self.im_conv(x_real) + self.real_conv(x_im)    # Compute imaginary part of the output
+        # Compute real part of the output
+        c_real = self.real_conv(x_real) - self.im_conv(x_im)
+        # Compute imaginary part of the output
+        c_im = self.im_conv(x_real) + self.real_conv(x_im)
 
         # Combine the real and imaginary parts into a complex tensor
         output = torch.stack([c_real, c_im], dim=-1)
         return output
+
 
 class CConvTranspose2d(nn.Module):
     """
@@ -91,12 +95,15 @@ class CConvTranspose2d(nn.Module):
         x_im = x[..., 1]    # Imaginary part of the input
 
         # Perform the transposed convolution (dilation convolution) operation
-        ct_real = self.real_convt(x_real) - self.im_convt(x_im)  # Compute real part of the output
-        ct_im = self.im_convt(x_real) + self.real_convt(x_im)    # Compute imaginary part of the output
+        # Compute real part of the output
+        ct_real = self.real_convt(x_real) - self.im_convt(x_im)
+        # Compute imaginary part of the output
+        ct_im = self.im_convt(x_real) + self.real_convt(x_im)
 
         # Combine the real and imaginary parts into a complex tensor
         output = torch.stack([ct_real, ct_im], dim=-1)
         return output
+
 
 class CBatchNorm2d(nn.Module):
     """
@@ -113,7 +120,8 @@ class CBatchNorm2d(nn.Module):
         self.eps = eps  # Small value added to the denominator for numerical stability
         self.momentum = momentum  # Momentum for the moving average
         self.affine = affine  # Whether to include learnable affine parameters
-        self.track_running_stats = track_running_stats  # Whether to keep track of running averages
+        # Whether to keep track of running averages
+        self.track_running_stats = track_running_stats
 
         # Real component batch normalization
         self.real_b = nn.BatchNorm2d(num_features=self.num_features, eps=self.eps, momentum=self.momentum,
@@ -135,7 +143,8 @@ class CBatchNorm2d(nn.Module):
         # Combine the normalized real and imaginary parts into a complex tensor
         output = torch.stack([n_real, n_im], dim=-1)
         return output
-    
+
+
 class Encoder(nn.Module):
     """
     Class of upsample block in a neural network architecture, which increases the dimensionality
@@ -168,6 +177,7 @@ class Encoder(nn.Module):
         normed = self.cbn(conved)  # Normalization step
         acted = self.leaky_relu(normed)  # Activation function
         return acted
+
 
 class Decoder(nn.Module):
     """
@@ -208,11 +218,14 @@ class Decoder(nn.Module):
             output = self.leaky_relu(normed)
         else:
             # Special processing for the last layer to ensure phase and magnitude are handled correctly
-            m_phase = conved / (torch.abs(conved) + 1e-8)  # Normalize the phase component
-            m_mag = torch.tanh(torch.abs(conved))  # Apply tanh to the magnitude for stability
+            # Normalize the phase component
+            m_phase = conved / (torch.abs(conved) + 1e-8)
+            # Apply tanh to the magnitude for stability
+            m_mag = torch.tanh(torch.abs(conved))
             output = m_phase * m_mag  # Combine phase and magnitude
 
         return output
+
 
 class DCUnet20(nn.Module):
     """
@@ -231,7 +244,8 @@ class DCUnet20(nn.Module):
         self.set_size(model_complexity=int(45//1.414),
                       input_channels=1, model_depth=20)
         self.encoders = []
-        self.model_length = 20 // 2  # Model depth divided by two to account for encoder-decoder symmetry
+        # Model depth divided by two to account for encoder-decoder symmetry
+        self.model_length = 20 // 2
 
         # Initialize encoder blocks
         for i in range(self.model_length):
