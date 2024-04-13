@@ -4,126 +4,93 @@ import torch
 
 DEVICE = torch.device('cuda')
 
-
 def train(net, data_object, train_loader, test_loader, loss_fn, optimizer, scheduler, epochs):
+    train_losses = []  # List to store loss of each training epoch
+    test_losses = []  # List to store loss of each testing epoch
 
-    train_losses = []
-    test_losses = []
+    for e in tqdm(range(epochs)):  # Loop over the specified number of epochs, showing progress with tqdm
 
-    for e in tqdm(range(epochs)):
-
-        # first evaluating for comparison
-
+        # Check if it is the first epoch and if training is 'Noise2Clean' to perform pre-training evaluation
         if e == 0 and data_object.training_type == "Noise2Clean":
             print("Pre-training evaluation")
-            # with torch.no_grad():
-            #    test_loss,testmet = test_epoch(net, test_loader, loss_fn,use_net=False)
-            # print("Had to load model.. checking if deets match")
-            # again, modified cuz im loading
-            testmet = getMetricsonLoader(test_loader, net, False)
-            # test_losses.append(test_loss)
-            # print("Loss before training:{:.6f}".format(test_loss))
+            # Calculate initial metrics and losses (commented out part is for an alternative initial test)
+            testmet = getMetricsonLoader(test_loader, net, False)  # Evaluate the model on the test loader
 
+            # Write initial test metrics to a results file
             with open(data_object.basepath + "/results.txt", "w+") as f:
                 f.write("Initial : \n")
                 f.write(str(testmet))
                 f.write("\n")
 
+        # Train the model for one epoch using the training loader and update the model weights
         train_loss = train_epoch(net, train_loader, loss_fn, optimizer)
-        test_loss = 0
-        scheduler.step()
+        test_loss = 0  # Initialize test loss
+        scheduler.step()  # Update the learning rate based on the scheduler
         print("Saving model....")
 
+        # Evaluate the model on the test loader without updating weights
         with torch.no_grad():
-            test_loss, testmet = test_epoch(
-                net, test_loader, loss_fn, use_net=True)
+            test_loss, testmet = test_epoch(net, test_loader, loss_fn, use_net=True)
 
+        # Store the losses from the current epoch
         train_losses.append(train_loss)
         test_losses.append(test_loss)
 
-        # print("skipping testing cuz peak autism idk")
-
+        # Write the metrics for the current epoch to the results file
         with open(data_object.basepath + "/results.txt", "a") as f:
-            f.write("Epoch :"+str(e+1) + "\n" + str(testmet))
+            f.write("Epoch :" + str(e + 1) + "\n" + str(testmet))
             f.write("\n")
 
-        print("OPed to txt")
+        print("OPed to txt")  # Output to text completion message
 
-        torch.save(net.state_dict(), data_object.basepath +
-                   '/Weights/dc20_model_'+str(e+1)+'.pth')
-        torch.save(optimizer.state_dict(), data_object.basepath +
-                   '/Weights/dc20_opt_'+str(e+1)+'.pth')
-
+        # Save the model and optimizer states to files
+        torch.save(net.state_dict(), data_object.basepath + '/Weights/dc20_model_' + str(e + 1) + '.pth')
+        torch.save(optimizer.state_dict(), data_object.basepath + '/Weights/dc20_opt_' + str(e + 1) + '.pth')
         print("Models saved")
 
-        # clear cache
+        # Clean up GPU memory and collect garbage to free up resources
         torch.cuda.empty_cache()
         gc.collect()
 
-        # print("Epoch: {}/{}...".format(e+1, epochs),
-        #              "Loss: {:.6f}...".format(train_loss),
-        #              "Test Loss: {:.6f}".format(test_loss))
+    # Return the last training and testing losses
     return train_loss, test_loss
 
-
 def train_epoch(net, train_loader, loss_fn, optimizer):
-    net.train()
-    train_ep_loss = 0.
-    counter = 0
-    for noisy_x, clean_x in train_loader:
+    net.train()  # Set the network to training mode (this enables features like dropout)
+    train_ep_loss = 0.  # Initialize training loss accumulator
+    counter = 0  # Initialize a counter to keep track of the number of batches processed
 
-        noisy_x, clean_x = noisy_x.to(DEVICE), clean_x.to(DEVICE)
+    for noisy_x, clean_x in train_loader:  # Iterate over batches of noisy and clean data
+        noisy_x, clean_x = noisy_x.to(DEVICE), clean_x.to(DEVICE)  # Move data to the device (GPU or CPU)
 
-        # zero  gradients
-        net.zero_grad()
+        net.zero_grad()  # Zero the gradients to prevent accumulation from previous iterations
 
-        # get the output from the model
-        pred_x = net(noisy_x)
+        pred_x = net(noisy_x)  # Forward pass: compute the predicted outputs by passing noisy input to the model
 
-        # calculate loss
-        loss = loss_fn(noisy_x, pred_x, clean_x)
-        loss.backward()
-        optimizer.step()
+        loss = loss_fn(noisy_x, pred_x, clean_x)  # Compute the loss between the predicted and true outputs
+        loss.backward()  # Backward pass: compute gradient of the loss with respect to model parameters
+        optimizer.step()  # Perform a single optimization step (parameter update)
 
-        train_ep_loss += loss.item()
-        counter += 1
+        train_ep_loss += loss.item()  # Accumulate the loss over batches
+        counter += 1  # Increment the batch counter
 
-    train_ep_loss /= counter
+    train_ep_loss /= counter  # Calculate the average loss over all batches
 
-    # clear cache
-    gc.collect()
-    torch.cuda.empty_cache()
-    return train_ep_loss
-
+    gc.collect()  # Garbage collection to free memory
+    torch.cuda.empty_cache()  # Clear cache of the GPU to free memory
+    return train_ep_loss  # Return the average training loss for this epoch
 
 def test_epoch(net, test_loader, loss_fn, use_net=True):
-    net.eval()
-    test_ep_loss = 0.
-    counter = 0.
-    '''
-    for noisy_x, clean_x in test_loader:
-        # get the output from the model
-        noisy_x, clean_x = noisy_x.to(DEVICE), clean_x.to(DEVICE)
-        pred_x = net(noisy_x)
+    net.eval()  # Set the network to evaluation mode (this disables features like dropout)
+    test_ep_loss = 0.  # Initialize test loss accumulator
+    counter = 0.  # Initialize a counter to keep track of the number of batches processed
 
-        # calculate loss
-        loss = loss_fn(noisy_x, pred_x, clean_x)
-        # Calc the metrics here
-        test_ep_loss += loss.item() 
-        
-        counter += 1
+    # The following commented-out block would normally calculate test loss per batch
 
-    test_ep_loss /= counter
-    '''
+    testmet = getMetricsonLoader(test_loader, net, use_net)  # Evaluate the model using custom metrics function
 
-    # print("Actual compute done...testing now")
+    gc.collect()  # Garbage collection to free memory
+    torch.cuda.empty_cache()  # Clear cache of the GPU to free memory
 
-    testmet = getMetricsonLoader(test_loader, net, use_net)
+    return test_ep_loss, testmet  # Return the accumulated test loss and evaluation metrics
 
-    # clear cache
-    gc.collect()
-    torch.cuda.empty_cache()
-
-    return test_ep_loss, testmet
-    # test_ep_loss = test_loss
-    # testmet = testmet
