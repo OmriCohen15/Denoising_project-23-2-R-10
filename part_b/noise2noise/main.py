@@ -125,6 +125,8 @@ def main():
         print('Training on CPU.')
 
         # Load the pre-trained model weights
+        # model_weights_path = "training_results/white_Noise2Noise_12-03-24_20-20/Weights/dc20_model_3.pth"
+        # model_weights_path = "training_results/podcasts_Noise2Noise_19-03-24_21-31/Weights/6hrs_podcasts_traning_dc20_model_3.pth"
         model_weights_path = "training_results/urban_Noise2Noise/Weights/dc20_model_4.pth"
 
         #
@@ -158,15 +160,16 @@ def main():
             os.makedirs(results_dir)
 
         # Loop through the files in the directory
-        for wav_file_full_path in test_noisy_files:
-            # filename = os.path.basename(wav_file_full_path)
-            filename = Path(wav_file_full_path).stem
-            results_path = results_dir + '/' + filename
+        for idx, wav_file_full_path in enumerate(test_clean_files):
+            # clean_filename = os.path.basename(wav_file_full_path)
+            clean_filename = Path(wav_file_full_path).stem
+            noisy_filename = Path(test_noisy_files[idx]).stem
+            results_path = results_dir + '/' + noisy_filename
             if not os.path.exists(results_path):
                 os.mkdir(results_path)
 
             original_sample_rate, data = wavfile.read(
-                "Samples/Sample_Test_Target/"+filename+".wav")
+                "Samples/Sample_Test_Target/"+clean_filename+".wav")
 
             # Print the path to the file
             print(wav_file_full_path)
@@ -186,26 +189,51 @@ def main():
 
             # Plot the results as Waveform and save them
             metrics = AudioMetrics(x_clean_np, x_estimated_np, SAMPLE_RATE)
+            print("Clean vs. Denoised")
             print(metrics.display())    # Print the metrics
+            metrics.save_to_file(
+                results_path + "/metrics_clean_vs_denoised.txt")
+
+            # Plot the results as Waveform and save them
+            metrics = AudioMetrics(x_clean_np, x_noisy_np, SAMPLE_RATE)
+            print("\nClean vs. Noisy")
+            print(metrics.display())    # Print the metrics
+            metrics.save_to_file(results_path + "/metrics_clean_vs_noisy.txt")
+
+            plt.clf()
             # Noisy audio waveform
-            plt.plot(x_noisy_np, label='Noisy')
-            plt.savefig(results_path+'/Noisy_waveform.png')
+            plt.plot(x_noisy_np, label='Noisy', color='#1F77B4')
+            plt.xlabel('Sample Number', fontweight='bold')
+            plt.ylabel('Amplitude', fontweight='bold')
+            plt.title('Noisy')
+            plt.savefig(results_path+'/waveform_Noisy.png')
             plt.clf()
+
             # Clean audio waveform
-            plt.plot(x_clean_np, label='Clean')
-            plt.savefig(results_path+'/Clean_waveform.png')
+            plt.plot(x_clean_np, label='Clean', color='#FF7F0E')
+            plt.xlabel('Sample Number', fontweight='bold')
+            plt.ylabel('Amplitude', fontweight='bold')
+            plt.title('Clean')
+            plt.savefig(results_path+'/waveform_Clean.png')
             plt.clf()
+
             # Estimated audio waveform
-            plt.plot(x_estimated_np, label='Denoised')
-            plt.savefig(results_path+'/Denoised_waveform.png')
+            plt.plot(x_estimated_np, label='Denoised', color='#2CA02C')
+            plt.xlabel('Sample Number', fontweight='bold')
+            plt.ylabel('Amplitude', fontweight='bold')
+            plt.title('Denoised')
+            plt.savefig(results_path+'/waveform_Denoised.png')
             plt.clf()
 
             plt.plot(x_noisy_np, label='Noisy')
             plt.plot(x_clean_np, label='Clean')
             plt.plot(x_estimated_np, label='Denoised')
+            plt.xlabel('Sample Number', fontweight='bold')
+            plt.ylabel('Amplitude', fontweight='bold')
+            plt.title('Combined Results')
             plt.legend()
             # plt.show()
-            plt.savefig(results_path+'/Combined_results_waveform.png')
+            plt.savefig(results_path+'/waveform_Combined_results.png')
             plt.clf()
 
             # Save the audio files
@@ -218,13 +246,13 @@ def main():
 
             # Plot the results as Spectrogram and save them
             plot_spectrogram(results_path + "/noisy.wav",
-                             results_path, "Noisy_spectrogram")
+                             results_path, "spectrogram_Noisy")
 
             plot_spectrogram(results_path + "/denoised.wav",
-                             results_path, "Denoised_spectrogram")
+                             results_path, "spectrogram_Denoised")
 
             plot_spectrogram(results_path + "/clean.wav",
-                             results_path, "Clean_spectrogram")
+                             results_path, "spectrogram_Clean")
 
 
 if __name__ == "__main__":

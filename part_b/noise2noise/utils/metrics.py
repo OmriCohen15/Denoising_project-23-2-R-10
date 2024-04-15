@@ -80,6 +80,15 @@ class AudioMetrics():
             metric_value = eval("self."+name)
             print(fstring.format(name, metric_value))
 
+    def save_to_file(self, output_filename="metrics_output.txt"):
+        fstring = "{} : {:.3f}"
+        metric_names = ["CSIG", "CBAK", "COVL", "PESQ", "SSNR", "STOI", "SNR"]
+
+        with open(output_filename, "a") as file:
+            for name in metric_names:
+                metric_value = eval("self." + name)
+                file.write(fstring.format(name, metric_value) + "\n")
+
 
 class AudioMetrics2():
     def __init__(self, target_speech, input_speech, fs):

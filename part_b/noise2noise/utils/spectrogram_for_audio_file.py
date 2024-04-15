@@ -15,7 +15,7 @@ def plot_spectrogram(file_path, folder_path, spectrogram_name):
     plt.figure(figsize=(10, 4))
     librosa.display.specshow(D, sr=sr, x_axis='time', y_axis='log')
     plt.colorbar(format='%+2.0f dB')
-    plt.title('Spectrogram')
+    plt.title(spectrogram_name)
     plt.tight_layout()
     # plt.show()
     plt.savefig(folder_path+'/'+spectrogram_name+'.png')
