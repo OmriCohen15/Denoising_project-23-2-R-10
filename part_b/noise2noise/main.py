@@ -1,5 +1,4 @@
 from imports import *
-from scipy.io import wavfile
 
 
 def main():
@@ -185,19 +184,28 @@ def main():
             x_noisy_np = torch.istft(x_noisy_np, n_fft=N_FFT, hop_length=HOP_LENGTH,
                                      normalized=True).view(-1).detach().cpu().numpy()
 
-            # Plot the results and save them
+            # Plot the results as Waveform and save them
             metrics = AudioMetrics(x_clean_np, x_estimated_np, SAMPLE_RATE)
             print(metrics.display())    # Print the metrics
             # Noisy audio waveform
             plt.plot(x_noisy_np, label='Noisy')
+            plt.savefig(results_path+'/Noisy_waveform.png')
+            plt.clf()
             # Clean audio waveform
             plt.plot(x_clean_np, label='Clean')
+            plt.savefig(results_path+'/Clean_waveform.png')
+            plt.clf()
             # Estimated audio waveform
-            plt.plot(x_estimated_np, label='Estimated')
+            plt.plot(x_estimated_np, label='Denoised')
+            plt.savefig(results_path+'/Denoised_waveform.png')
+            plt.clf()
 
+            plt.plot(x_noisy_np, label='Noisy')
+            plt.plot(x_clean_np, label='Clean')
+            plt.plot(x_estimated_np, label='Denoised')
             plt.legend()
             # plt.show()
-            plt.savefig(results_path+'/Waveform.png')
+            plt.savefig(results_path+'/Combined_results_waveform.png')
             plt.clf()
 
             # Save the audio files
@@ -207,6 +215,16 @@ def main():
                 results_path + "/denoised.wav"), sample_rate=SAMPLE_RATE, bit_precision=16)
             save_audio_file(np_array=x_clean_np, file_path=Path(
                 results_path + "/clean.wav"), sample_rate=original_sample_rate, bit_precision=16)
+
+            # Plot the results as Spectrogram and save them
+            plot_spectrogram(results_path + "/noisy.wav",
+                             results_path, "Noisy_spectrogram")
+
+            plot_spectrogram(results_path + "/denoised.wav",
+                             results_path, "Denoised_spectrogram")
+
+            plot_spectrogram(results_path + "/clean.wav",
+                             results_path, "Clean_spectrogram")
 
 
 if __name__ == "__main__":
