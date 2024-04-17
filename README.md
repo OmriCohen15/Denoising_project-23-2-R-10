@@ -107,10 +107,18 @@ Ensure the `main.py` script is configured to use the correct path for the traine
    ```
 
    For example: after denoising `Samples/Sample_Test_Input/audio_1.wav` the denoised file will be saved in the directory `Samples/Results/audio_1` which will contain the following:
-   - `noisy.wav`
-   - `denoised.wav`
+   - `metrics_clean_vs_denoised.txt`
+   - `metrics_clean_vs_noisy.txt`
+   - `waveform_Combined_results.png`
    - `clean.wav`
-   - `Waveform.png`
+     - `waveform_Clean.png`
+     - `spectrogram_Clean.png`
+   - `noisy.wav`
+     - `waveform_Noisy.png`
+     - `spectrogram_Noisy.png`
+   - `denoised.wav`
+     - `waveform_Denoised.png`
+     - `spectrogram_Denoised.png`
 
 
 By following these steps, you should be able to use the denoising model to clean your noisy audio files effectively. Make sure each configuration path and setting is correctly specified in your scripts to avoid any issues.
