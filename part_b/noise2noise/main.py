@@ -95,8 +95,9 @@ def main():
 
         # specify paths and uncomment to resume training from a given point
         # model_checkpoint = torch.load(path_to_model)
-        # opt_checkpoint = torch.load(path_to_opt)
         # dcunet20.load_state_dict(model_checkpoint)
+        
+        # opt_checkpoint = torch.load(path_to_opt)
         # optimizer.load_state_dict(opt_checkpoint)
 
         train_losses, test_losses = train(

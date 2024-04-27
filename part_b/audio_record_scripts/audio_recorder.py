@@ -29,7 +29,7 @@ def create_directory_structure():
 def record_audio(output_filename, record_seconds):
     FORMAT = pyaudio.paInt16  # Audio format
     CHANNELS = 2
-    RATE = 44100  # Sample rate
+    RATE = 48000  # Sample rate
     CHUNK = 1024  # Buffer size
 
     audio = pyaudio.PyAudio()
@@ -41,7 +41,9 @@ def record_audio(output_filename, record_seconds):
     print("Recording...")
     frames = []
 
-    for i in range(0, int(RATE / CHUNK * record_seconds)):
+    # Calculate the total number of chunks needed
+    total_chunks = math.ceil((RATE * record_seconds) / CHUNK)
+    for i in range(total_chunks):
         data = stream.read(CHUNK)
         frames.append(data)
     print("Finished recording.")
@@ -71,17 +73,29 @@ def split_audio(input_filename, interval_seconds, label_prefix):
     input_path = os.path.join(create_directory_structure()[0], input_filename)
 
     with wave.open(input_path, 'rb') as wav:
-        length = wav.getnframes()
+        num_of_frames = wav.getnframes()
         rate = wav.getframerate()
-        duration = length / rate
+        duration = num_of_frames / rate
+        print("Rate= " + str(rate) + ", Number of frames= " +
+              str(num_of_frames) + ", Duration= " + str(duration))
         chunks = math.ceil(duration / interval_seconds)
 
         # results_folder = os.path.join(os.path.dirname(__file__), "results")
-        for i in range(chunks):
-            wav.setpos(int(i * interval_seconds * rate))
-            chunk_data = wav.readframes(int(interval_seconds * rate))
-            output_filename = f"{label_prefix}_{i}.wav"
-            # Save in the chunks directory
+        for wav_idx in range(chunks):
+            start_frame = int(wav_idx * interval_seconds * rate)
+            end_frame = int((wav_idx + 1) * interval_seconds * rate)
+
+            # Ensure not to read past the end of the file
+            # Check if this is the last chunk
+            if wav_idx == chunks - 1:
+                num_frames = num_of_frames - start_frame  # Only the remaining frames
+            else:
+                num_frames = end_frame - start_frame
+
+            wav.setpos(start_frame)
+            chunk_data = wav.readframes(num_frames)
+
+            output_filename = f"{label_prefix}_{wav_idx}.wav"
             output_path = os.path.join(chunks_dir, output_filename)
 
             with wave.open(output_path, 'wb') as chunk_wav:
@@ -89,4 +103,5 @@ def split_audio(input_filename, interval_seconds, label_prefix):
                 chunk_wav.setsampwidth(wav.getsampwidth())
                 chunk_wav.setframerate(rate)
                 chunk_wav.writeframes(chunk_data)
+
             print(f"Created {output_filename}")

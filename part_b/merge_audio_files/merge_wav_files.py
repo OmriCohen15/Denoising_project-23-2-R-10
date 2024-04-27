@@ -5,7 +5,7 @@ from tqdm import tqdm  # Import tqdm for the progress bar
 # NOTE: on large files this can take a long time to complete and may fail.
 
 
-def merge_wav_files_with_conversion_and_progress(folder_path, output_file_path, target_sample_rate=44100, channels=2):
+def merge_wav_files_with_conversion_and_progress(folder_path, output_file_path, target_sample_rate=48000, channels=2):
     # Ensure the output file does not already exist
     if os.path.exists(output_file_path):
         print(

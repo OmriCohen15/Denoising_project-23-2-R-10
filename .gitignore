@@ -9,3 +9,4 @@ part_b/split_audio_script/*.wav
 part_b/audio_file_analysis/results
 part_b/noise2noise/Samples/Results/*
 part_b/noise2noise/utils/__pycache__/
+part_b/walkie_talkie_filter/results
