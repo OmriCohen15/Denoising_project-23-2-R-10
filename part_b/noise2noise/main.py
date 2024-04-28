@@ -33,8 +33,8 @@ def main():
 ################## Choose the mode of training and inference ###################
 ################################################################################
 
-    # mode = "train"
-    mode = "inference"
+    mode = "train"
+    # mode = "inference"
 
     if mode == "train":
         """
@@ -94,11 +94,11 @@ def main():
             optimizer, step_size=1, gamma=0.1)
 
         # specify paths and uncomment to resume training from a given point
-        # model_checkpoint = torch.load(path_to_model)
-        # dcunet20.load_state_dict(model_checkpoint)
+        model_checkpoint = torch.load('/home/ubuntu/git/Denoising_project-23-2-R-10/part_b/noise2noise/training_results/urban_Noise2Noise/Weights/dc20_model_4.pth')
+        dcunet20.load_state_dict(model_checkpoint)
         
-        # opt_checkpoint = torch.load(path_to_opt)
-        # optimizer.load_state_dict(opt_checkpoint)
+        opt_checkpoint = torch.load('/home/ubuntu/git/Denoising_project-23-2-R-10/part_b/noise2noise/training_results/urban_Noise2Noise/Weights/dc20_opt_4.pth')
+        optimizer.load_state_dict(opt_checkpoint)
 
         train_losses, test_losses = train(
             dcunet20, data_object, train_loader, test_loader, loss_fn, optimizer, scheduler, 4)
